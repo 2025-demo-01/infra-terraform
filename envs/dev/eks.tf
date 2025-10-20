@@ -13,7 +13,7 @@ module "eks" {
   public_subnet_ids   = module.network.public_subnet_ids
   kubernetes_version  = var.kubernetes_version
   oidc_provider_arn   = aws_iam_openid_connect_provider.eks.arn
-
+  kms_key_arn         = module.kms.eks_kms_arn
   system_instance_types = ["m6i.large"]
   system_min_size       = 1
   system_max_size       = 2

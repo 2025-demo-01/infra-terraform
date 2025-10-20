@@ -67,44 +67,22 @@ spec:
 YAML
 }
 
-# NodePool — 저지연 (OD 우선 + Spot 보조, 선점/NUMA 힌트)
-resource "kubectl_manifest" "nodepool_ll" {
+resource "kubectl_manifest" "ec2nodeclass_ll_bottlerocket" {
   yaml_body = <<YAML
-apiVersion: karpenter.sh/v1beta1
-kind: NodePool
-metadata: { name: ll-match-ng, namespace: karpenter }
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata: { name: ec2nodeclass-ll-br, namespace: karpenter }
 spec:
-  template:
-    metadata:
-      labels:
-        workload: "low-latency"
-        numa: "aware"
-        cpu-manager-policy: "static"
-    spec:
-      nodeClassRef: { name: ec2nodeclass-ll }
-      taints:
-        - key: "workload"
-          value: "low-latency"
-          effect: NoSchedule
-      requirements:
-        - key: "karpenter.k8s.aws/instance-family"
-          operator: In
-          values: ["c7i","c6i"]
-        - key: "karpenter.k8s.aws/instance-size"
-          operator: In
-          values: ["4xlarge","8xlarge","12xlarge"]
-        - key: "karpenter.k8s.aws/capacity-type"
-          operator: In
-          values: ["on-demand","spot"]
-  limits:
-    cpu: "2000"
-    memory: "4096Gi"
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    consolidateAfter: 120s
-  weight: 20
+  amiFamily: Bottlerocket
+  role: ${module.eks.nodegroup_role_name}
+  subnetSelectorTerms: [ { tags: { karpenter: "enabled" } } ]
+  securityGroupSelectorTerms: [ { tags: { karpenter: "enabled" } } ]
+  tags: { workload: "low-latency", env: "prod" }
 YAML
 }
+
+
+
 
 # NodePool — 일반 워크로드 (Spot 우선)
 resource "kubectl_manifest" "nodepool_spot_general" {

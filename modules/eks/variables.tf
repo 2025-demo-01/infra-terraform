@@ -9,3 +9,6 @@ variable "system_min_size"     { type = number default = 2 }
 variable "system_max_size"     { type = number default = 6 }
 variable "oidc_provider_arn"   { type = string }
 variable "tags"                { type = map(string) default = {} }
+variable "enable_secrets_encryption" { type = bool   default = true }
+variable "cluster_log_types"         { type = list(string) default = ["api","audit","authenticator","controllerManager","scheduler"] }
+variable "kms_key_arn"               { type = string default = "" }

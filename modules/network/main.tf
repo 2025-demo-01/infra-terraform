@@ -27,3 +27,23 @@ resource "aws_ec2_tag" "public_subnet_tags" {
   key         = "karpenter"
   value       = "enabled"
 }
+
+# modules/network/main.tf (추가, 간단 예시)
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = var.vpc_id
+  service_name = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [] # 해당 VPC RT로 채워 넣기
+  tags = local.tags
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.region}.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnet_ids
+  security_group_ids= [aws_security_group.karpenter_shared.id]
+  private_dns_enabled = true
+  tags = local.tags
+}
+# (ecr.dkr, sts, logs, kms, ssm, secretsmanager 등도 동일 패턴)

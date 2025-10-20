@@ -30,3 +30,8 @@ module "clickhouse" {
   zookeeper_endpoints = []
   tags                = var.tags
 }
+
+module "msk" {
+  client_security_group_id = module.network.karpenter_security_group_id 
+}
+

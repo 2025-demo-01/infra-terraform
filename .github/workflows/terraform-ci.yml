@@ -1,0 +1,25 @@
+name: terraform-ci
+on:
+  pull_request:
+    paths:
+      - 'envs/**'
+      - 'modules/**'
+      - '!**/*.md'
+jobs:
+  tf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: 1.9.5 }
+      - name: fmt
+        run: terraform fmt -check -recursive
+      - name: validate (prod)
+        working-directory: envs/prod
+        run: terraform validate
+      - name: validate (stg)
+        working-directory: envs/stg
+        run: terraform validate
+      - name: validate (dev)
+        working-directory: envs/dev
+        run: terraform validate

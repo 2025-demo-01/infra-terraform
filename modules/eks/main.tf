@@ -24,6 +24,29 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
+# modules/eks/main.tf (추가 리소스)
+resource "aws_kms_key" "eks_secrets" {
+  count                   = var.enable_secrets_encryption && var.kms_key_arn == "" ? 1 : 0
+  description             = "EKS secrets encryption key"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+  tags                    = local.tags
+}
+
+resource "aws_eks_cluster" "this" {
+  enabled_cluster_log_types = var.cluster_log_types
+
+  dynamic "encryption_config" {
+    for_each = var.enable_secrets_encryption ? [1] : []
+    content {
+      resources = ["secrets"]
+      provider {
+        key_arn = var.kms_key_arn != "" ? var.kms_key_arn : aws_kms_key.eks_secrets[0].arn
+      }
+    }
+  }
+}
+
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = aws_iam_role.cluster.arn

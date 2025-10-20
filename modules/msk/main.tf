@@ -5,15 +5,23 @@ locals {
   }, var.tags)
 }
 
-# SG for MSK brokers
 resource "aws_security_group" "msk" {
   name        = "${var.cluster_name}-msk-sg"
   description = "MSK cluster security group"
   vpc_id      = var.vpc_id
-  ingress { from_port = 9092 to_port = 9098 protocol = "tcp" cidr_blocks = ["0.0.0.0/0"] } # 예시
+
+  ingress {
+    from_port                = 9092
+    to_port                  = 9098
+    protocol                 = "tcp"
+    security_groups          = [var.client_security_group_id] # ← 새 변수로 받기
+    description              = "EKS nodes only"
+  }
   egress  { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
+
   tags = local.tags
 }
+
 
 # SCRAM secret
 resource "aws_secretsmanager_secret" "scram" {

@@ -34,6 +34,12 @@ resource "aws_kms_key" "eks_secrets" {
 }
 
 resource "aws_eks_cluster" "this" {
+ vpc_config {
+  subnet_ids              = concat(var.private_subnet_ids, var.public_subnet_ids)
+  endpoint_private_access = true
+  endpoint_public_access  = true
+  public_access_cidrs     = ["203.0.113.0/24"] 
+   }
   enabled_cluster_log_types = var.cluster_log_types
 
   dynamic "encryption_config" {

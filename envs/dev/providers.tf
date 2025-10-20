@@ -24,3 +24,9 @@ provider "kubectl" {
   token                  = data.aws_eks_cluster_auth.this.token
   load_config_file       = false
 }
+provider "aws" {
+  region = var.region
+  default_tags {
+    tags = var.tags
+  }
+}

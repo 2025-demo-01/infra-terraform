@@ -1,0 +1,48 @@
+name: tf-ci
+on:
+  pull_request:
+    paths:
+      - 'envs/**'
+      - 'modules/**'
+      - '*.tf'
+      - '.github/**'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: true
+      INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: 1.7.5 }
+
+      - name: Install tools
+        run: |
+          curl -sL https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          curl -sSfL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | bash
+          curl -sSL https://github.com/open-policy-agent/conftest/releases/download/v0.57.0/conftest_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+
+      - name: Terraform fmt & init
+        run: |
+          terraform fmt -check -recursive
+          cd envs/dev && terraform init -backend-config=backend.hcl
+
+      - name: Terraform validate (dev)
+        run: cd envs/dev && terraform validate
+
+      - name: TFLint (root)
+        run: tflint --recursive
+
+      - name: tfsec (security scan)
+        run: tfsec .
+
+      - name: Conftest (policy as code)
+        run: conftest test -p policies .
+
+      - name: Infracost (estimate)
+        run: |
+          infracost breakdown --path envs/dev --format table

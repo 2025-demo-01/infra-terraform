@@ -13,3 +13,4 @@ resource "aws_iam_role" "devops" {
 data "aws_iam_policy_document" "devops_assume" {
   statement { actions=["sts:AssumeRole"], principals{ type="AWS", identifiers=["*"] } }
 }
+

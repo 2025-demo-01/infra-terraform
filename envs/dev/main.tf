@@ -64,6 +64,23 @@ module "msk" {
   tags           = local.tags
 }
 
+module "kms" {
+  source      = "../../modules/kms"
+  name_prefix = var.name_prefix
+  tags        = local.tags
+}
+
+resource "aws_eks_cluster" "encryption_patch" {
+  name = module.eks.cluster_name
+  encryption_config {
+    resources = ["secrets"]
+    provider { key_arn = module.kms.key_arn }
+  }
+  depends_on = [module.kms]
+  lifecycle { ignore_changes = all } 
+}
+
+
 module "aurora" {
   source            = "../../modules/aurora"
   name_prefix       = var.name_prefix

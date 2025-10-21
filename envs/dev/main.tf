@@ -121,4 +121,10 @@ resource "aws_ssm_parameter" "p" {
   value = each.value
 }
 
+module "budget" {
+  source       = "../../modules/budget"
+  name         = "dev-monthly-budget"
+  limit_amount = 200   # 예시
+  email        = "sophie@example.com"
+}
 

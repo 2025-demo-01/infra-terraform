@@ -107,3 +107,10 @@ module "route53" {
   failover_enable = true
   tags           = local.tags
 }
+
+module "ecr" {
+  source       = "../../modules/ecr"
+  repositories = ["trading-api", "wallet", "matching", "risk-control", "gateway"]
+  tags         = local.tags
+}
+

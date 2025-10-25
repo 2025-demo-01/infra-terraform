@@ -6,4 +6,5 @@ resource "aws_securityhub_standards_subscription" "cis" {
 }
 resource "aws_securityhub_standards_subscription" "fsbp" {
   standards_arn = "arn:aws:securityhub:::ruleset/aws-foundational-security-best-practices/v/1.0.0"
+
 }
